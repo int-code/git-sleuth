@@ -1,4 +1,5 @@
 import subprocess
+from typing import Optional, Tuple
 
 def get_conflicted_files():
     """Returns a list of file paths that have merge conflicts."""
@@ -26,13 +27,11 @@ def get_conflicted_files():
 
 import re
 
-def extract_semantic_conflict_blocks(file_path: str):
+def extract_semantic_conflict_blocks(file_content: str):
     """
     Extracts semantic blocks (functions, classes, global code)
     that contain Git conflict markers.
     """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        file_content = f.read()
     # Match all defs and classes (non-greedy), capturing their span
     block_pattern = re.compile(r"(def|class)\s+\w+[\s\S]*?(?=\n(def|class)\s+\w+|\Z)", re.MULTILINE)
     matches = list(block_pattern.finditer(file_content))
@@ -63,3 +62,109 @@ def extract_semantic_conflict_blocks(file_path: str):
             conflicted_chunks.append(chunk)
 
     return conflicted_chunks
+
+
+def try_simple_resolve(file_content: str, conflict_chunk: str) -> Optional[str]:
+    """
+    Attempts to resolve conflicts using simple heuristics.
+    Returns resolved file content if successful, None otherwise.
+    """
+    
+    if resolution := apply_simple_rules(conflict_chunk):
+        file_content = file_content.replace(conflict_chunk, resolution)
+        return file_content
+    
+    return None
+
+
+
+def apply_simple_rules(conflict_chunk: str) -> Optional[str]:
+    """
+    Applies resolution rules to a single conflict chunk.
+    Returns resolved chunk if rule matches, None otherwise.
+    """
+    # Parse the conflict chunk
+    parsed = parse_conflict(conflict_chunk)
+    if not parsed:
+        return None
+    
+    head, base = parsed
+    
+    # Rule 1: Identical changes (except maybe whitespace)
+    if normalize_code(head) == normalize_code(base):
+        return head  # arbitrary pick
+    
+    # Rule 2: One side is empty
+    if not head.strip():
+        return base
+    if not base.strip():
+        return head
+    
+    # Rule 3: Version number increments
+    if is_version_bump(head, base):
+        return head  # typically take the higher version
+    
+    # Rule 4: Import/requirement changes (union)
+    if is_import_conflict(head, base):
+        return merge_imports(head, base)
+    
+    # Rule 5: Whitespace-only differences
+    if re.sub(r'\s+', '', head) == re.sub(r'\s+', '', base):
+        return head  # prefer one style
+    
+    return None
+
+# Helper functions
+def parse_conflict(chunk: str) -> Optional[Tuple[str, str]]:
+    """
+    Extracts HEAD and BASE parts from conflict marker
+    Returns (head_content, base_content) or None if malformed
+    """
+    match = re.match(
+        r'<<<<<<< HEAD\n(.*?)=======\n(.*?)>>>>>>> .+',
+        chunk,
+        re.DOTALL
+    )
+    if not match:
+        return None
+    return match.group(1).strip(), match.group(2).strip()
+
+def normalize_code(code: str) -> str:
+    """Standardizes code for comparison"""
+    code = code.strip()
+    code = re.sub(r'\s+', ' ', code)  # collapse whitespace
+    code = re.sub(r'["\']', '', code)  # ignore string quotes
+    return code
+
+def is_version_bump(head: str, base: str) -> bool:
+    """Checks if conflict is about version numbers"""
+    version_re = r'\d+\.\d+\.\d+'
+    head_versions = set(re.findall(version_re, head))
+    base_versions = set(re.findall(version_re, base))
+    
+    if not head_versions or not base_versions:
+        return False
+    
+    # Check if one is clearly a version bump of the other
+    return head_versions != base_versions and (
+        all(v in head for v in base_versions) or
+        all(v in base for v in head_versions)
+    )
+
+def is_import_conflict(head: str, base: str) -> bool:
+    """Identifies import/requirement conflicts"""
+    lines_head = {line.strip() for line in head.splitlines() if line.strip()}
+    lines_base = {line.strip() for line in base.splitlines() if line.strip()}
+    
+    return (
+        (all(line.startswith(('import ', 'from ', 'require')) for line in lines_head)) and
+        (all(line.startswith(('import ', 'from ', 'require')) for line in lines_base))
+    )
+
+def merge_imports(head: str, base: str) -> str:
+    """Merges two import blocks"""
+    lines = set()
+    for line in head.splitlines() + base.splitlines():
+        if line.strip():
+            lines.add(line.strip())
+    return '\n'.join(sorted(lines)) + '\n'

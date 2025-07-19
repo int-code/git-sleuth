@@ -1,34 +1,29 @@
-# file: cli/main.py (Executable)
-import subprocess
-import json
-import requests
 import sys
-from utils import get_conflicted_files, extract_semantic_conflict_blocks, process_conflict_chunks
+import argparse
 
-API_URL = "http://localhost:8000/resolve-conflict"
 
 
 def main():
+    parser = argparse.ArgumentParser(description="git-sleuth-helper")
 
-    conflicted_files = get_conflicted_files()
+    parser.add_argument("--resolve-conflict", action="store_true", help="If action is to resolve conflicts")
+    parser.add_argument("--apply-resolution", action="store_true", help="If action is to apply resolution")
+    parser.add_argument("--merge_id", type=str, help="Merge ID of the conflict")
+    parser.add_argument("--head", type=str, help="The head branch")
+    parser.add_argument("--base", type=str, help="The base branch")
 
-    for file_path in conflicted_files:
-        chunks = extract_semantic_conflict_blocks(file_path)
-        done = False
-        while not done:
-            response = requests.post(API_URL, json={
-                "file": file_path,
-                "chunks": chunks
-            })
-            result = response.json()
-            resolved_code = result["resolved_code"]
-            done = result["done"]
-            with open(f"repo/{file_path}", "w") as f:
-                f.write(resolved_code)
+    # Parse args from command line
+    args = parser.parse_args()
 
-    subprocess.run(["git", "commit", "-am", "auto-resolved merge"], cwd="repo", check=True)
-    subprocess.run(["git", "push"], cwd="repo", check=True)
+    if args.resolve_conflict:
+        from conflict_handler import conflict_handler
+        conflict_handler()
+
+    elif args.apply_resolution:
+        from apply_resolution import apply_resolution
+        apply_resolution(args.merge_id, args.head, args.base)
+    
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3])
+    main()
