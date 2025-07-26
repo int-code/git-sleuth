@@ -7,11 +7,14 @@ import os
 from routers.auth import auth_router
 from routers.webhook import webhook_router
 from db import init_db
+from logger import setup_logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()  # Initialize the database
     yield
+
+setup_logging()
 
 app = FastAPI(lifespan=lifespan)
 

@@ -2,6 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, Request, Depends
 import hmac
 import hashlib
+import logging
 
 from utils.event_routing import route_event
 from db import get_db
@@ -9,6 +10,7 @@ from db import get_db
 WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 
 webhook_router = APIRouter()
+logger = logging.getLogger(__name__)
 
 def verify_signature(payload_body, signature_header):
     if not signature_header:
@@ -24,6 +26,7 @@ def verify_signature(payload_body, signature_header):
 
 @webhook_router.post("/webhook")
 async def handle_webhook(request: Request):
+    logger.info("/webhook called")
     signature = request.headers.get("X-Hub-Signature-256", "")
     body = await request.body()
     
@@ -36,6 +39,7 @@ async def handle_webhook(request: Request):
     try:
         route_event(event_type, payload)
     except Exception as e:
+        logger.error(f"Error in /webhook: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing event: {str(e)}")
     return {"status": "success", "message": f"Processed {event_type} event"}
     
