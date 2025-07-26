@@ -2,12 +2,14 @@ from fastapi import Request, HTTPException
 from typing import Optional
 import httpx
 import asyncio
+import json
 
 from db import get_db
 from config import celery_app
 from routers.auth import get_or_refresh_installation_token
 from models.merge_conflicts import MergeConflict
 from models.pr import PullRequests
+from models.repo import Repository
 
 async def fetch_pr_details(owner: str, repo: str, pr_number: int, installation_id: int) -> dict:
     """Poll GitHub API for PR details until mergeable is not null"""
@@ -80,12 +82,27 @@ async def trigger_workflow(repo_name, owner, action_workflow_filename, base_bran
 @celery_app.task
 def handle_new_pr(data):
     try:
+        db = next(get_db())
+        pr = db.query(PullRequests).filter(PullRequests.github_id == data['pull_request']['id']).first()
+        if not pr:
+            repo = db.query(Repository).filter(Repository.github_id == data['repository']['id']).first()
+            if not repo:
+                raise Exception("App is not installed on repository")
+            pr = PullRequests(repo_id=repo.id, 
+                              pr_number=data["pull_request"]['number'],
+                              installation_id=data['installation']['id'],
+                              url=data['pull_request']['url'],
+                              github_id=data['pull_request']['id'],
+                              node_id=data['pull_request']['node_id'],
+                              state=data['pull_request']['state'],
+                              title=data['pull_request']['title'],
+                              commits=data['pull_request']['commits'],
+                              details=json.dumps(data))
+            db.add(pr)
+            db.commit()
+            db.refresh(pr)
         mergeable = asyncio.run(check_pr_mergeable(data))
         if not mergeable:
-            db = next(get_db())
-            pr = db.query(PullRequests).filter(PullRequests.github_id == data['pull_request']['id']).first()
-            if not pr:
-                raise Exception("PR does not exist")
             new_merge_conflict = MergeConflict(pr_id=pr.id, status="open")
             db.add(new_merge_conflict)
             db.commit()
