@@ -1,0 +1,47 @@
+name: Merge Conflict Resolver
+
+on:
+  workflow_dispatch:
+    inputs:
+      head_ref:
+        required: true
+        type: string
+      base_ref:
+        required: true
+        type: string
+
+jobs:
+  detect-conflict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_ref }}
+          fetch-depth: 0
+
+      - name: Fetch head branch
+        run: git fetch origin ${{ inputs.head_ref }}
+
+      - name: Attempt merge
+        id: merge
+        run: |
+          git config --global user.name "merge-bot"
+          git config --global user.email "merge@bot.local"
+          git merge origin/${{ inputs.head_ref }} || true
+          mkdir conflicted_files || true
+          grep -rl '<<<<<<<' . | tee conflict_files.txt | xargs -I{} cp --parents {} conflicted_files/ || true
+
+      - name: Gets exe file
+        run: |
+          curl -L -o git-sleuth-cli https://github.com/int-code/git-sleuth/releases/download/v0.3/git-sleuth-cli
+          chmod +x git-sleuth-cli
+
+      - name: Check binary file type
+        run: |
+          file git-sleuth-cli
+          ls -lah git-sleuth-cli
+      
+      - name: Run the exe
+        run: |
+          ./git-sleuth-cli --resolve-conflict

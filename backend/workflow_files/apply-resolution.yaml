@@ -1,0 +1,27 @@
+name: Merge Conflict Resolver
+
+on:
+  workflow_dispatch:
+    inputs:
+      head_ref:
+        required: true
+        type: string
+      base_ref:
+        required: true
+        type: string
+      merge_id:
+        required: true
+        type: string
+
+jobs:
+  detect-conflict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gets exe file
+        run: |
+          curl -L -o git-sleuth-cli https://github.com/int-code/git-sleuth/releases/download/v0.1/git-sleuth-cli
+          chmod +x git-sleuth-cli
+      
+      - name: Run the exe
+        run: |
+          git-sleuth-cli --apply-resolution --head ${{ inputs.head_ref }} --base ${{ inputs.base_ref }} --merge_id ${{ inputs.merge_id }}
