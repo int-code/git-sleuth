@@ -12,10 +12,11 @@ class ConflictResolutionRequest(BaseModel):
     file: str
     file_path: str
     task_id: str
+    merge_id: int
 
 @mc_router.post("/resolve_conflicts")
 def resolve_conflicts(data: ConflictResolutionRequest, db=Depends(get_db)):
-    task = Task(id=data.task_id, status="queued", task_type="Resolve_conflict_AI", file_path=data.file_path)
+    celery_id = resolve_conflict.delay(data.file, data.task_id)
+    task = Task(id=data.task_id, status="queued", task_type="Resolve_conflict_AI", merge_id=data.merge_id, celery_task_id=celery_id)
     db.add(task)
     db.commit()
-    resolve_conflict.delay(data.file, data.task_id)

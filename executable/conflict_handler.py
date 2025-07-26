@@ -7,7 +7,7 @@ from utils import get_conflicted_files, extract_semantic_conflict_blocks, try_si
 from uuid import uuid4
 
 API_URL = "https://git-sleuth-api.pubali.dev/"
-def conflict_handler():
+def conflict_handler(merge_id):
     conflicted_files = get_conflicted_files()
     if len(conflicted_files) == 0:
         print("No merge conflicts found.")
@@ -31,7 +31,8 @@ def conflict_handler():
             response = requests.post(API_URL+"/resolve_conflicts", json={
                 "file": file,
                 "file_path": file_path,
-                "task_id": task_id
+                "task_id": task_id,
+                "merge_id": merge_id
             })
             if response.status_code != 200:
                 print(f"Error submitting task: {response.text}")

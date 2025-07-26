@@ -9,6 +9,9 @@ on:
       base_ref:
         required: true
         type: string
+      merge_id:
+        required: true
+        type: string
 
 jobs:
   detect-conflict:
@@ -44,4 +47,4 @@ jobs:
       
       - name: Run the exe
         run: |
-          ./git-sleuth-cli --resolve-conflict
+          ./git-sleuth-cli --resolve-conflict --merge-id ${{ merge_id }}

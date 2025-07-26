@@ -17,7 +17,7 @@ def main():
 
     if args.resolve_conflict:
         from conflict_handler import conflict_handler
-        conflict_handler()
+        conflict_handler(args.merge_id)
 
     elif args.apply_resolution:
         from apply_resolution import apply_resolution

@@ -3,8 +3,11 @@ from typing import Optional
 import httpx
 import asyncio
 
+from db import get_db
 from config import celery_app
 from routers.auth import get_or_refresh_installation_token
+from models.merge_conflicts import MergeConflict
+from models.pr import PullRequests
 
 async def fetch_pr_details(owner: str, repo: str, pr_number: int, installation_id: int) -> dict:
     """Poll GitHub API for PR details until mergeable is not null"""
@@ -52,7 +55,7 @@ async def check_pr_mergeable(data):
             raise e
 
 
-async def trigger_workflow(repo_name, owner, action_workflow_filename, base_branch, head_branch, GITHUB_TOKEN):
+async def trigger_workflow(repo_name, owner, action_workflow_filename, base_branch, head_branch, GITHUB_TOKEN, merge_id):
 
     # Trigger GitHub Action workflow_dispatch
     url = f"https://api.github.com/repos/{owner}/{repo_name}/actions/workflows/{action_workflow_filename}/dispatches"
@@ -64,7 +67,8 @@ async def trigger_workflow(repo_name, owner, action_workflow_filename, base_bran
         "ref":base_branch,  # run action on base branch (e.g., main)
         "inputs": {
             "head_ref": head_branch,
-            "base_ref": base_branch
+            "base_ref": base_branch,
+            "merge_id": merge_id
         }
     }
 
@@ -73,53 +77,21 @@ async def trigger_workflow(repo_name, owner, action_workflow_filename, base_bran
         if resp.status_code != 204:
             raise Exception(f"Failed to trigger workflow: {resp.text}")
 
-async def verify_repo_access(token, owner, repo_name):
-    url = f"https://api.github.com/repos/{owner}/{repo_name}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json"
-    }
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, headers=headers)
-        if resp.status_code != 200:
-            raise Exception(f"No access to repository: {resp.text}")
-
-async def check_workflow_exists(token, owner, repo_name, workflow_filename):
-    url = f"https://api.github.com/repos/{owner}/{repo_name}/actions/workflows"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json"
-    }
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, headers=headers)
-        workflows = resp.json()['workflows']
-        print(workflows)
-        return any(w["name"] == workflow_filename or 
-                  w["path"].endswith(workflow_filename) 
-                  for w in workflows)
-
-
-async def get_installation_details(jwt_token, installation_id):
-    url = f"https://api.github.com/app/installations/{installation_id}"
-    headers = {
-        "Authorization": f"Bearer {jwt_token}",
-        "Accept": "application/vnd.github+json"
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-        if response.status_code != 200:
-            raise Exception(f"Failed to get installation: {response.text}")
-        return response.json()
-
-
 @celery_app.task
 def handle_new_pr(data):
     try:
         mergeable = asyncio.run(check_pr_mergeable(data))
         if not mergeable:
+            db = get_db()
+            pr = db.query(PullRequests).filter(PullRequests.github_id == data['pull_request']['id']).first()
+            if not pr:
+                raise Exception("PR does not exist")
+            new_merge_conflict = MergeConflict(pr_id=pr.id, status="open")
+            db.add(new_merge_conflict)
+            db.commit()
+            db.refresh(new_merge_conflict)
             installation_token = asyncio.run(get_or_refresh_installation_token(data["installation"]["id"]))
-            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['login'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token))
+            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['login'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token, new_merge_conflict.id))
     except Exception as e:
         print(f"Error handling new PR: {e}")
         raise Exception("Error processing PR data")
