@@ -119,7 +119,7 @@ def handle_new_pr(data):
         mergeable = asyncio.run(check_pr_mergeable(data))
         if not mergeable:
             installation_token = asyncio.run(get_or_refresh_installation_token(data["installation"]["id"]))
-            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['name'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token))
+            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['login'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token))
     except Exception as e:
         print(f"Error handling new PR: {e}")
         raise Exception("Error processing PR data")
