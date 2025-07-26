@@ -6,7 +6,7 @@ import sys
 from utils import get_conflicted_files, extract_semantic_conflict_blocks, try_simple_resolve
 from uuid import uuid4
 
-API_URL = "http://localhost:8000"
+API_URL = "https://git-sleuth-api.pubali.dev/"
 def conflict_handler():
     conflicted_files = get_conflicted_files()
     if len(conflicted_files) == 0:
