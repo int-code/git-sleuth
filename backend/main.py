@@ -6,6 +6,7 @@ import os
 
 from routers.auth import auth_router
 from routers.webhook import webhook_router
+from routers.merge_conflict import mc_router
 from db import init_db
 from logger import setup_logging
 
@@ -33,3 +34,4 @@ async def home(request: Request):
 
 app.include_router(auth_router, tags=["auth"])
 app.include_router(webhook_router, tags=["webhook"])
+app.include_router(mc_router, tags=["merge-conflict"])
