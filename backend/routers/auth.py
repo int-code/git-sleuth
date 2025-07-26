@@ -10,7 +10,7 @@ import time
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
-from redis_setup import redis
+from redis_setup import get_redis
 
 
 
@@ -160,6 +160,7 @@ async def generate_new_installation_token(installation_id: str):
         return installation_token, expires_at
 
 async def get_or_refresh_installation_token(installation_id: str):
+    redis = get_redis()
     installation_token= await redis.get(f"installation_id:{installation_id}")
     expires_at = await redis.get(f"installation_id:{installation_id}_expires_at")
 
