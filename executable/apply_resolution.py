@@ -3,7 +3,7 @@ import requests
 
 def apply_resolution(merge_id: str, head_branch: str, base_branch:str):
     try:
-        api_url = "http://localhost:8000"
+        api_url = "https://git-sleuth-api.pubali.dev/"
         res = api_url+"/get-merge/"+merge_id
         response = requests.get(res)
         response.raise_for_status()  # Raise an error for bad responses
