@@ -5,3 +5,6 @@ experiments/
 *.env
 *.pem
 .vscode/
+*build/
+*dist/
+frontend/
