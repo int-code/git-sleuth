@@ -82,7 +82,7 @@ def handle_new_pr(data):
     try:
         mergeable = asyncio.run(check_pr_mergeable(data))
         if not mergeable:
-            db = get_db()
+            db = next(get_db())
             pr = db.query(PullRequests).filter(PullRequests.github_id == data['pull_request']['id']).first()
             if not pr:
                 raise Exception("PR does not exist")
