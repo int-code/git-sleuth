@@ -1,11 +1,11 @@
-# app/config.py
-
+import os
 from celery import Celery
+
 
 celery_app = Celery(
     "worker",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0"
+    broker=f"redis://{os.getenv("REDIS_HOST")}:{os.getenv("REDIS_PORT")}/0",
+    backend=f"redis://{os.getenv("REDIS_HOST")}:{os.getenv("REDIS_PORT")}/0"
 )
 
 celery_app.conf.update(
