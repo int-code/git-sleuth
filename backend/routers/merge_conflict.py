@@ -17,5 +17,5 @@ class ConflictResolutionRequest(BaseModel):
 
 @mc_router.post("/resolve_conflicts")
 def resolve_conflicts(data: ConflictResolutionRequest, db=Depends(get_db)):
-    celery_task = resolve_conflict.delay(data.file, data.task_id)
+    celery_task = resolve_conflict.delay(data.file, data.task_id, data.file_path)
     add_task("Resolve_conflict_AI", "queued", celery_task.id, merge_id=data.merge_id, task_id=data.task_id)

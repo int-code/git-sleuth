@@ -11,6 +11,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from dotenv import load_dotenv
 
 from models.merge_conflicts import MergeConflict
+from models.resolved_code import Resolved_code
 from utils.utils import generate_random_alphanumeric_string
 from config import celery_app
 from db import get_db
@@ -110,7 +111,7 @@ agent = create_react_agent(
 )
 
 @celery_app.task(name="resolve_conflict")
-def resolve_conflict(conflict_chunk: str, task_id: str) -> ResolvedCode:
+def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> ResolvedCode:
     """
     Resolves a conflict chunk using the agent.
     The conflict chunk is expected to be in the format of a git conflict marker.
@@ -136,8 +137,9 @@ def resolve_conflict(conflict_chunk: str, task_id: str) -> ResolvedCode:
     task.status = "resolved"
     print(f"Resolved code: {resolved_code.resolved_code}")
     print(f"Confidence score: {resolved_code.confidence_score}")
-    merge.resolved_code_branch = "fix: auto-fix-"+generate_random_alphanumeric_string()
-    task.confidence_score = resolved_code.confidence_score
+    resolved_code_branch = "fix: auto-fix-"+generate_random_alphanumeric_string()
+    new_resolved_code = Resolved_code(merge_conflict_id=merge.id, file_path=file_path, resolved_code_branch=resolved_code_branch, confidence_score=resolved_code.confidence_score)
+    db.add(new_resolved_code)
     db.commit()
 
     return {

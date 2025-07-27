@@ -3,7 +3,7 @@ from db import Base
 from datetime import datetime
 
 
-class MergeConflict(Base):
+class Resolved_code(Base):
     __tablename__ = 'resolved_code'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
