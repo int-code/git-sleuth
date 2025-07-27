@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, BigInteger
 from db import Base
 from datetime import datetime
 
@@ -8,10 +8,10 @@ class PullRequests(Base):
     id = Column(Integer, primary_key=True, index=True)
     repo_id = Column(Integer, nullable=False)
     pr_number = Column(Integer, nullable=False)
-    installation_id = Column(Integer, nullable=False)
+    installation_id = Column(BigInteger, nullable=False)
     url = Column(String, nullable=False)
-    github_id = Column(Integer, unique=True, nullable=False)
-    node_id = Column(String, unique=True, nullable=False)
+    github_id = Column(BigInteger, unique=True, nullable=False)
+    node_id = Column(BigInteger, unique=True, nullable=False)
     state = Column(String, nullable=False)
     title = Column(String, nullable=False)
     closed_at = Column(DateTime, nullable=True)
