@@ -35,5 +35,5 @@ async def home(request: Request):
 
 app.include_router(auth_router, tags=["auth"])
 app.include_router(webhook_router, tags=["webhook"])
-app.include_router(mc_router, tags=["merge-conflict"])
-app.include_router(task_router, tags=["task"])
+app.include_router(mc_router, tags=["merge_conflict"])
+app.include_router(task_router, tags=["tasks"])

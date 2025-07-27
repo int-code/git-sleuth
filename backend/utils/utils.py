@@ -1,14 +1,18 @@
 import random
 import string
+import uuid
 
 from db import get_db
 from models.taskLog import Task
 
 
-def add_task(task_type, status, celery_task_id, pr_id=None, merge_id=None):
+def add_task(task_type, status, celery_task_id, pr_id=None, merge_id=None, task_id=None):
     """Add a new task to the database."""
     db = next(get_db())
+    if not task_id:
+        task_id = str(uuid.uuid4())
     task = Task(
+        id=task_id,
         pr_id=pr_id,
         status=status,
         task_type=task_type,

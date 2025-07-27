@@ -57,10 +57,11 @@ def conflict_handler(merge_id):
                 time.sleep(2)
             
             file = result['resolved_code']
+            branch = result['branch']
 
-    subprocess.run(["git", "checkout", "-b", f"auto-merge-{task_id}"], check=True)
+    subprocess.run(["git", "checkout", "-b", branch], check=True)
     with open(file_path, 'w', encoding='utf-8') as f:
             f.write(file)
     subprocess.run(["git", "add", "."], check=True)
     subprocess.run(["git", "commit", "-am", "auto-resolved merge"], check=True)
-    subprocess.run(["git", "push", "--set-upstream", "origin", f"auto-merge-{task_id}"], check=True)
+    subprocess.run(["git", "push", "--set-upstream", "origin", branch], check=True)

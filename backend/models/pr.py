@@ -5,7 +5,7 @@ from datetime import datetime
 class PullRequests(Base):
     __tablename__ = 'pr'
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     repo_id = Column(Integer, nullable=False)
     pr_number = Column(Integer, nullable=False)
     installation_id = Column(BigInteger, nullable=False)
