@@ -115,7 +115,7 @@ async def installation_callback(
             raise HTTPException(status_code=403, detail="Invalid user session")
         
         # Get installation token
-        await get_or_refresh_installation_token()
+        await get_or_refresh_installation_token(installation_id)
         
         # Store the installation_id and token in your database
         # Link to user_id from session: request.session["user"]["id"]
