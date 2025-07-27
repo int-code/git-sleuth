@@ -132,6 +132,41 @@ def handle_new_pr(data):
             pr.merged_at = data["pull_request"]["merged_at"]
             pr.commits = data["pull_request"]["commits"]
             pr.details = json.dumps(data)
+        elif data['action'] == "closed":
+            pr = db.query(PullRequests).filter(PullRequests.github_id==data["pull_request"]["id"]).first()
+            if not pr:
+                pr = add_pr_to_database(db, data)
+                mc = MergeConflict(pr_id = pr.id, status="closed")
+                db.add(mc)
+            else:
+                pr.closed_at = data["pull_request"]["closed_at"]
+                pr.merged_at = data["pull_request"]["merged_at"]
+                mc = db.query(MergeConflict).filter(MergeConflict.pr_id==pr.id, MergeConflict.status in ['queued', 'resolving', 'open']).first()
+                if mc:
+                    mc.status = "closed"
+                    celery_resolve_task = db.query(Task).filter(Task.merge_id==mc.id, Task.task_type == "Resolve_conflict_AI")
+                    if celery_resolve_task and celery_resolve_task.status in ["queued", "resolving"]:
+                        result = AsyncResult(celery_resolve_task.celery_task_id)
+                        result.revoke(terminate=True, signal='SIGTERM')
+                        celery_resolve_task.status = "terminated"
+                        db.commit()
+                else:
+                    mc = MergeConflict(pr_id = pr.id, status="closed")
+                    db.add(mc)
+        elif data['action'] == 'reopened':
+            pr = db.query(PullRequests).filter(PullRequests.github_id==data["pull_request"]["id"]).first()
+            if not pr:
+                pr = add_pr_to_database(db, data)
+            else:
+                mc = db.query(MergeConflict).filter(MergeConflict.pr_id==pr.id, MergeConflict.status == "closed").first()
+                if mc:
+                    mc.status = "open"
+                    celery_resolve_task = db.query(Task).filter(Task.merge_id==mc.id, Task.task_type == "Resolving_conflicts")
+                    if celery_resolve_task and celery_resolve_task.status in ["queued", "resolving"]:
+                        result = AsyncResult(celery_resolve_task.celery_task_id)
+                        result.revoke(terminate=True, signal='SIGTERM')
+                        celery_resolve_task.status = "terminated"
+                        db.commit()
 
         mergeable = asyncio.run(check_pr_mergeable(data))
         pr.mergeable = mergeable
