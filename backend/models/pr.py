@@ -11,7 +11,7 @@ class PullRequests(Base):
     installation_id = Column(BigInteger, nullable=False)
     url = Column(String, nullable=False)
     github_id = Column(BigInteger, unique=True, nullable=False)
-    node_id = Column(BigInteger, unique=True, nullable=False)
+    node_id = Column(String, unique=True, nullable=False)
     state = Column(String, nullable=False)
     title = Column(String, nullable=False)
     closed_at = Column(DateTime, nullable=True)

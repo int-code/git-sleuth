@@ -108,7 +108,7 @@ def handle_new_pr(data):
             db.commit()
             db.refresh(new_merge_conflict)
             installation_token = asyncio.run(get_or_refresh_installation_token(data["installation"]["id"]))
-            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['login'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token, new_merge_conflict.id))
+            asyncio.run(trigger_workflow(data['repository']["name"], data['repository']["owner"]['login'], "merge-conflict.yaml", data["pull_request"]["base"]["ref"], data["pull_request"]["head"]["ref"], installation_token, str(new_merge_conflict.id)))
     except Exception as e:
         print(f"Error handling new PR: {e}")
         raise Exception("Error processing PR data")

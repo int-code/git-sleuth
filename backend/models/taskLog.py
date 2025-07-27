@@ -6,7 +6,7 @@ from datetime import datetime
 class Task(Base):
     __tablename__ = 'task'
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(String, primary_key=True, index=True)
     pr_id = Column(Integer, nullable=True)
     status = Column(String, nullable=False, default='queued')
     task_type = Column(String, nullable=False)
