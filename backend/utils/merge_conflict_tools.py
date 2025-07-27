@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from langchain_core.output_parsers import PydanticOutputParser
 from dotenv import load_dotenv
 
-from models.resolved_code import MergeConflict
+from models.merge_conflicts import MergeConflict
 from utils.utils import generate_random_alphanumeric_string
 from config import celery_app
 from db import get_db

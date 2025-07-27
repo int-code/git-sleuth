@@ -5,6 +5,8 @@ import httpx
 import asyncio
 import json
 
+from sqlalchemy import desc
+
 from utils.utils import add_task
 from models.pr import PullRequests
 from config import celery_app
@@ -126,6 +128,7 @@ def handle_new_pr(data):
                         result.revoke(terminate=True, signal='SIGTERM')
                         task.status = "terminated"
                         db.commit()
+                    mc.status = "overwritten"
             pr.state = data["pull_request"]["state"]
             pr.title = data["pull_request"]["title"]
             pr.closed_at = data["pull_request"]["closed_at"]
@@ -153,45 +156,43 @@ def handle_new_pr(data):
                 else:
                     mc = MergeConflict(pr_id = pr.id, status="closed")
                     db.add(mc)
+            db.commit()
         elif data['action'] == 'reopened':
             pr = db.query(PullRequests).filter(PullRequests.github_id==data["pull_request"]["id"]).first()
             if not pr:
                 pr = add_pr_to_database(db, data)
             else:
-                mc = db.query(MergeConflict).filter(MergeConflict.pr_id==pr.id, MergeConflict.status == "closed").first()
+                mc = db.query(MergeConflict).filter(MergeConflict.pr_id==pr.id, MergeConflict.status in ["open", "queued", "resolving"]).order_by(desc(MergeConflict.created_at)).first()
                 if mc:
-                    mc.status = "open"
+                    mc.status = "overwritten"
                     celery_resolve_task = db.query(Task).filter(Task.merge_id==mc.id, Task.task_type == "Resolving_conflicts")
                     if celery_resolve_task and celery_resolve_task.status in ["queued", "resolving"]:
                         result = AsyncResult(celery_resolve_task.celery_task_id)
                         result.revoke(terminate=True, signal='SIGTERM')
                         celery_resolve_task.status = "terminated"
-                        db.commit()
+                    
+                    db.commit()
 
-        mergeable = asyncio.run(check_pr_mergeable(data))
-        pr.mergeable = mergeable
-        db.commit()
-        db.refresh(pr)
-        if not mergeable:
-            if mc:
-                mc.status = "open"
-                db.commit()
-            else:
+        if data['action'] != "closed":
+            mergeable = asyncio.run(check_pr_mergeable(data))
+            pr.mergeable = mergeable
+            db.commit()
+            db.refresh(pr)
+            if not mergeable:
                 mc = MergeConflict(pr_id=pr.id, status="open")
                 db.add(mc)
                 db.commit()
-            celery_task = resolve_merge_conflicts.delay(data)
-            add_task("merge_conflicts", "queued", celery_task.id, pr_id=pr.id, merge_id=mc.id)
-        elif mc:
-            mc.status = "overwritten"
-            db.commit()
+                db.refresh(mc)
+                print(f"Added Merge id {mc.id}")
+                celery_task = resolve_merge_conflicts.delay(data, mc.id)
+                add_task("merge_conflicts", "queued", celery_task.id, pr_id=pr.id, merge_id=mc.id)
     except Exception as e:
         print(f"Error handling new PR: {e}")
         raise Exception("Error processing PR data")
     
 
 @celery_app.task
-def resolve_merge_conflicts(data):
+def resolve_merge_conflicts(data, merge_id):
     installation_token = asyncio.run(get_or_refresh_installation_token(data["installation"]["id"]))
     headers = {
         "Authorization": f"Bearer {installation_token}",
@@ -204,6 +205,7 @@ def resolve_merge_conflicts(data):
         "inputs": {
             "head_ref": data['pull_request']['head']['ref'],
             "base_ref": data['pull_request']['base']['ref'], 
+            "merge_id": str(merge_id)
         } 
     }
 
