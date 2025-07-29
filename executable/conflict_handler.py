@@ -41,29 +41,22 @@ def conflict_handler(merge_id):
             
             result = None
             # poll for result from backend
-            print("Task is queued")
+            print("Task is queued", flush=True)
             task_status = "queued"
-            response = requests.get(f"{API_URL}/get-task/{task_id}", stream=True)
-            client = sseclient.SSEClient(response)
-            for event in client.events():
-                if event.data == "[DONE]":
-                    print(f"Code resolved with a confidence score of {result['confidence_score']}")
-                    break
-                result = json.loads(event.data)
-            
-            # while True:
-            #     result = requests.get()
-            #     if result.status_code == 200:
-            #         result = result.json()
-            #         # print(result)
-            #         if result["status"] == "resolved":
-                        
-                        
-            #             break
-            #         elif task_status == "queued" and result["status"] =="resolving":
-            #             task_status = "resolving"
-            #             print("Task is being resolved")
-            #     time.sleep(2)
+            while True:
+                result = requests.get(f"{API_URL}/get-task/{task_id}")
+                if result.status_code == 200:
+                    result = result.json()
+                    # print(result)
+                    if result and result["status"] == "resolved":
+                        break
+                    else:
+                        task_status = "resolving"
+                        print("Task is being resolved")
+                else:
+                    raise SystemError("Got unexpected response")
+                time.sleep(2)
+
             
             file = result['resolved_code']
             branch = result['branch']

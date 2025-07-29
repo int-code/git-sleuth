@@ -1,3 +1,4 @@
+import asyncio
 from langchain.agents import Tool
 from typing import List, Dict, Any
 from langchain_openai import ChatOpenAI
@@ -115,7 +116,7 @@ agent = create_react_agent(
 )
 
 @celery_app.task(name="resolve_conflict")
-def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> ResolvedCode:
+def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) :
     """
     Resolves a conflict chunk using the agent.
     The conflict chunk is expected to be in the format of a git conflict marker.
@@ -144,7 +145,7 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> Resol
     task.status = "resolved"
     print(f"Resolved code: {resolved_code.resolved_code}")
     print(f"Confidence score: {resolved_code.confidence_score}")
-    resolved_code_branch = "fix: auto-fix-"+generate_random_alphanumeric_string()
+    resolved_code_branch = "auto-fix-"+generate_random_alphanumeric_string()
     new_resolved_code = Resolved_code(merge_conflict_id=merge.id, 
                                       file_path=file_path, 
                                       resolved_code_branch=resolved_code_branch, 
@@ -152,15 +153,19 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> Resol
                                       task_id=task.id)
     db.add(new_resolved_code)
     db.commit()
-    r = get_redis()
-    res_body = {
-        "resolved_code": resolved_code.resolved_code,
-        "confidence_score": resolved_code.confidence_score,
-        "branch": merge.resolved_code_branch
-    }
-    result = json.dumps(res_body)
-    r.publish(task_id, result)
-    r.publish(task_id, "[DONE]")
+    try:
+        r = get_redis()
+        res_body = {
+            "status": "resolved",
+            "resolved_code": resolved_code.resolved_code,
+            "confidence_score": resolved_code.confidence_score,
+            "branch": resolved_code_branch
+        }
+        result = json.dumps(res_body)
+        asyncio.run(r.set(f"task_result:{task_id}", json.dumps(result)))
+        print("Task ID", task_id)
+    except Exception as e:
+        print("ERROR: ", e)
 
     return None
 

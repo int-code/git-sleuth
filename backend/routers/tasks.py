@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from db import get_db
 from fastapi.responses import StreamingResponse
@@ -18,20 +19,11 @@ async def get_task_status(task_id: str, db=Depends(get_db)):
     Endpoint to get the status of a task by its ID.
     """
     r = get_redis()
-    pubsub = r.pubsub()
-    await pubsub.subscribe(task_id)
+    result = await r.get(f"task_result:{task_id}")
+    if result:
+        return json.loads(result)
+    return None
 
-    async def event_generator():
-        try:
-            while True:
-                message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=10)
-                if message:
-                    yield f"data: {message['data'].decode()}\n\n"
-                await asyncio.sleep(0.5)
-        finally:
-            await pubsub.unsubscribe(task_id)
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
     # print(f"Fetching status for task ID: {task_id}")
     # task = db.query(Task).filter(Task.id == task_id).first()
     # if not task:
