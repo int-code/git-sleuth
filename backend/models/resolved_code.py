@@ -8,6 +8,7 @@ class Resolved_code(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     merge_conflict_id = Column(Integer, nullable=False)
+    task_id = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
     resolved_code_branch = Column(String, nullable=False)
     confidence_score = Column(Float, nullable=False)

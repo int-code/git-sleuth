@@ -16,6 +16,8 @@ from utils.utils import generate_random_alphanumeric_string
 from config import celery_app
 from db import get_db
 from models.taskLog import Task
+from redis_setup import get_redis
+import json
 
 load_dotenv()
 
@@ -138,15 +140,24 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> Resol
     print(f"Resolved code: {resolved_code.resolved_code}")
     print(f"Confidence score: {resolved_code.confidence_score}")
     resolved_code_branch = "fix: auto-fix-"+generate_random_alphanumeric_string()
-    new_resolved_code = Resolved_code(merge_conflict_id=merge.id, file_path=file_path, resolved_code_branch=resolved_code_branch, confidence_score=resolved_code.confidence_score)
+    new_resolved_code = Resolved_code(merge_conflict_id=merge.id, 
+                                      file_path=file_path, 
+                                      resolved_code_branch=resolved_code_branch, 
+                                      confidence_score=resolved_code.confidence_score,
+                                      task_id=task.id)
     db.add(new_resolved_code)
     db.commit()
-
-    return {
+    r = get_redis()
+    res_body = {
         "resolved_code": resolved_code.resolved_code,
         "confidence_score": resolved_code.confidence_score,
         "branch": merge.resolved_code_branch
     }
+    result = json.dumps(res_body)
+    r.publish(task_id, result)
+    r.publish(task_id, "[DONE]")
+
+    return None
 
 
 

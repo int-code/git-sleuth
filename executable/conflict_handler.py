@@ -3,6 +3,7 @@ import json
 import time
 import requests
 import sys
+import sseclient
 from utils import get_conflicted_files, extract_semantic_conflict_blocks, try_simple_resolve
 from uuid import uuid4
 
@@ -42,19 +43,27 @@ def conflict_handler(merge_id):
             # poll for result from backend
             print("Task is queued")
             task_status = "queued"
-            while True:
-                result = requests.get(f"{API_URL}/get-task/{task_id}")
-                if result.status_code == 200:
-                    result = result.json()
-                    # print(result)
-                    if result["status"] == "resolved":
-                        task_status = "completed"
-                        print(f"Code resolved with a confidence score of {result['confidence_score']}")
-                        break
-                    elif task_status == "queued" and result["status"] =="resolving":
-                        task_status = "resolving"
-                        print("Task is being resolved")
-                time.sleep(2)
+            response = requests.get(f"{API_URL}/get-task/{task_id}", stream=True)
+            client = sseclient.SSEClient(response)
+            for event in client.events():
+                if event.data == "[DONE]":
+                    print(f"Code resolved with a confidence score of {result['confidence_score']}")
+                    break
+                result = json.loads(event.data)
+            
+            # while True:
+            #     result = requests.get()
+            #     if result.status_code == 200:
+            #         result = result.json()
+            #         # print(result)
+            #         if result["status"] == "resolved":
+                        
+                        
+            #             break
+            #         elif task_status == "queued" and result["status"] =="resolving":
+            #             task_status = "resolving"
+            #             print("Task is being resolved")
+            #     time.sleep(2)
             
             file = result['resolved_code']
             branch = result['branch']
