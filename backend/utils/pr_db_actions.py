@@ -185,7 +185,7 @@ def handle_new_pr(data):
                 db.refresh(mc)
                 print(f"Added Merge id {mc.id}")
                 celery_task = resolve_merge_conflicts.delay(data, mc.id)
-                add_task("merge_conflicts", "queued", celery_task.id, pr_id=pr.id, merge_id=mc.id)
+                add_task("merge_conflicts", "queued", celery_task_id=celery_task.id, pr_id=pr.id, merge_id=mc.id)
     except Exception as e:
         print(f"Error handling new PR: {e}")
         raise Exception("Error processing PR data")

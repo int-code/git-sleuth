@@ -9,6 +9,7 @@ from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 from langchain_core.output_parsers import PydanticOutputParser
 from dotenv import load_dotenv
+from celery import current_task
 
 from models.merge_conflicts import MergeConflict
 from models.resolved_code import Resolved_code
@@ -18,6 +19,7 @@ from db import get_db
 from models.taskLog import Task
 from redis_setup import get_redis
 import json
+
 
 load_dotenv()
 
@@ -119,10 +121,13 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) -> Resol
     The conflict chunk is expected to be in the format of a git conflict marker.
     Returns the resolved code and confidence score.
     """
+    
+    celery_task_id = current_task.request.id
     db = next(get_db())
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise ValueError(f"Task with ID {task_id} not found in the database")
+    task.celery_task_id = celery_task_id
     
     merge = db.query(MergeConflict).filter(MergeConflict.id == task.merge_id).first()
     if not merge:

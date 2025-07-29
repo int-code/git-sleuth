@@ -9,7 +9,7 @@ def route_event(event_type, payload):
             installation_id = payload.get("installation", {}).get("id")
             if len(repos)>0 or not installation_id is None:
                 task = handle_add_repositories.delay(repos, installation_id)
-                add_task("add_repo", "queued", task.id)
+                add_task("add_repo", "queued", celery_task_id=task.id)
             else:
                 raise ValueError("No repositories added in the payload")
         elif payload.get("action") == "removed":
@@ -17,7 +17,7 @@ def route_event(event_type, payload):
             installation_id = payload.get("installation", {}).get("id")
             if len(repos)>0 or not installation_id is None:
                 task = handle_remove_repositories.delay(repos)
-                add_task("archive_repo", "queued", task.id)
+                add_task("archive_repo", "queued", celery_task_id=task.id)
             else:
                 raise ValueError("No repositories added in the payload")
     elif event_type == "installation":
@@ -26,7 +26,7 @@ def route_event(event_type, payload):
             installation_id = payload.get("installation", {}).get("id")
             if len(repos)>0 and not installation_id is None:
                 task = handle_add_repositories.delay(repos, installation_id)
-                add_task("add_repo", "queued", task.id)
+                add_task("add_repo", "queued", celery_task_id=task.id)
             else:
                 raise ValueError("No repositories added in the payload")
         elif payload.get("action") == "deleted":
@@ -34,9 +34,9 @@ def route_event(event_type, payload):
             installation_id = payload.get("installation", {}).get("id")
             if len(repos)>0 or not installation_id is None:
                 task = handle_remove_repositories.delay(repos)
-                add_task("archive_repo", "queued", task.id)
+                add_task("archive_repo", "queued", celery_task_id=task.id)
             else:
                 raise ValueError("No repositories added in the payload")
     elif event_type == "pull_request":
         task = handle_new_pr.delay(payload)
-        add_task("handle_pr_event", "queued", task.id)
+        add_task("handle_pr_event", "queued", celery_task_id=task.id)
