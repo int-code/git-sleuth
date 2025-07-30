@@ -12,6 +12,9 @@ on:
       merge_id:
         required: true
         type: string
+      GH_APP_TOKEN:
+        required: true
+        type: string
 
 jobs:
   detect-conflict:
@@ -22,6 +25,7 @@ jobs:
         with:
           ref: ${{ inputs.base_ref }}
           fetch-depth: 0
+          token: ${{ inputs.GH_APP_TOKEN }}
 
       - name: Fetch head branch
         run: git fetch origin ${{ inputs.head_ref }}
@@ -29,8 +33,8 @@ jobs:
       - name: Attempt merge
         id: merge
         run: |
-          git config --global user.name "merge-bot"
-          git config --global user.email "merge@bot.local"
+          git config --global user.name "git-sleuth"
+          git config --global user.email "git-sleuth@bot.local"
           git merge origin/${{ inputs.head_ref }} || true
           mkdir conflicted_files || true
           grep -rl '<<<<<<<' . | tee conflict_files.txt | xargs -I{} cp --parents {} conflicted_files/ || true

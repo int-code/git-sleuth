@@ -98,7 +98,8 @@ async def trigger_workflow(repo_name, owner, action_workflow_filename, base_bran
         "inputs": {
             "head_ref": head_branch,
             "base_ref": base_branch,
-            "merge_id": merge_id
+            "merge_id": merge_id,
+            "GH_APP_TOKEN": GITHUB_TOKEN
         }
     }
 
@@ -205,7 +206,8 @@ def resolve_merge_conflicts(data, merge_id):
         "inputs": {
             "head_ref": data['pull_request']['head']['ref'],
             "base_ref": data['pull_request']['base']['ref'], 
-            "merge_id": str(merge_id)
+            "merge_id": str(merge_id),
+            "GH_APP_TOKEN": installation_token
         } 
     }
 
