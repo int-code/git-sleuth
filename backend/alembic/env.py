@@ -9,7 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 from db import Base
 from db import engine
-from models import *
+from models.merge_conflicts import MergeConflict
+from models.pr import PullRequests
+from models.repo import Repository
+from models.user import User
+from models.resolved_code import Resolved_code
+from models.taskLog import Task
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 
