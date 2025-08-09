@@ -43,12 +43,14 @@ def conflict_handler(merge_id):
             # poll for result from backend
             print("Task is queued", flush=True)
             task_status = "queued"
+            print("Polling for task id", task_id, flush=True)
             while True:
                 result = requests.get(f"{API_URL}/get-task/{task_id}")
                 if result.status_code == 200:
                     result = result.json()
-                    # print(result)
-                    if result and result["status"] == "resolved":
+                    if result:
+                        result = json.loads(result)
+                        print("Task resolved", flush=True)
                         break
                     else:
                         task_status = "resolving"

@@ -1,3 +1,4 @@
+from celery import current_task
 from celery.result import AsyncResult
 from fastapi import Request, HTTPException
 from typing import Optional
@@ -112,6 +113,10 @@ async def trigger_workflow(repo_name, owner, action_workflow_filename, base_bran
 def handle_new_pr(data):
     try:
         db = next(get_db())
+        task = db.query(Task).filter(Task.celery_task_id == current_task.request.id).first()
+        if task:
+            task.status = "resolving"
+            db.commit()
         if data['action'] == "opened":
             pr = add_pr_to_database(db, data)
             mc = None

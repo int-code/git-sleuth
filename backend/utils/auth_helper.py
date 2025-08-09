@@ -1,12 +1,18 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from functools import wraps
+from http.client import HTTPException
 import os
 from pathlib import Path
 import time
 from authlib.integrations.starlette_client import OAuth
+from fastapi import Depends, Request
+from fastapi.responses import JSONResponse
 import httpx
 from jose import jwt
 from redis_setup import get_redis
 from dotenv import load_dotenv
+from db import get_db
+from models.user import User
 
 load_dotenv()
 # OAuth setup
@@ -89,3 +95,48 @@ async def get_or_refresh_installation_token(installation_id: str):
     await redis.set(f"installation_id:{installation_id}", new_token, ex=3600)
     await redis.set(f"installation_id:{installation_id}_expires_at", expires_at, ex=3600)
     return new_token
+
+
+def create_jwt_token(user):
+    """Create a JWT token for the user session"""
+    payload = {
+        "user_id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "avatar_url": user.avatar_url,
+        "github_id": user.github_id,
+        "bio": user.bio,
+        "exp": timezone.utc() + timedelta(days=1)
+    }
+    token = jwt.encode(payload, os.getenv("JWT_KEY"), algorithm="RS256")
+    return token
+
+def verify_token(token: str, db=Depends(get_db)):
+    """Verify the JWT token and return the user data"""
+    try:
+        payload = jwt.decode(token, os.getenv("JWT_KEY"), algorithms=["RS256"])
+        user = db.query(User).filter(User.id == payload["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+def jwt_required(func):
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return JSONResponse(status_code=401, content={"detail": "Missing or invalid token"})
+
+        token = auth_header.split(" ")[1]
+        try:
+            user = verify_token(token)
+            request.state.user = user
+        except HTTPException as e:
+            return JSONResponse(status_code=401, content={"detail": e.detail})
+
+        return await func(request, *args, **kwargs)
+    return wrapper

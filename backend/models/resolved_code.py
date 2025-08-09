@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, BigInteger
 from db import Base
 from datetime import datetime
 
@@ -12,4 +12,5 @@ class Resolved_code(Base):
     file_path = Column(String, nullable=False)
     resolved_code_branch = Column(String, nullable=False)
     confidence_score = Column(Float, nullable=False)
+    token_usage = Column(BigInteger, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.now)

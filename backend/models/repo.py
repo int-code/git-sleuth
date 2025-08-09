@@ -7,6 +7,7 @@ class Repository(Base):
     __tablename__ = 'repositories'
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False)
     installation_id = Column(BigInteger, nullable=False)
     github_id = Column(BigInteger, unique=True, nullable=False)
     node_id = Column(String, unique=True, nullable=False)

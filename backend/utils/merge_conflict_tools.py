@@ -141,6 +141,16 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) :
     )
     
     resolved_code = response['structured_response']
+    total_tokens_used = 0
+
+    for msg in resolved_code["messages"]:
+        # Some messages have `response_metadata` with token_usage
+        if hasattr(msg, "response_metadata") and msg.response_metadata.get("token_usage"):
+            total_tokens_used += msg.response_metadata["token_usage"]["total_tokens"]
+
+        # Some have `usage_metadata` instead
+        elif hasattr(msg, "usage_metadata") and msg.usage_metadata.get("total_tokens"):
+            total_tokens_used += msg.usage_metadata["total_tokens"]
     
     task.status = "resolved"
     print(f"Resolved code: {resolved_code.resolved_code}")
@@ -150,7 +160,8 @@ def resolve_conflict(conflict_chunk: str, task_id: str, file_path: str) :
                                       file_path=file_path, 
                                       resolved_code_branch=resolved_code_branch, 
                                       confidence_score=resolved_code.confidence_score,
-                                      task_id=task.id)
+                                      task_id=task.id,
+                                      token_usage=total_tokens_used)
     db.add(new_resolved_code)
     db.commit()
     try:
@@ -220,7 +231,7 @@ def log(msg):
     response = agent.invoke(
         {"messages": [{"role": "user", "content": conflict_chunk_with_markers}]}
     )
-    print(response['structured_response'])
+    print(response)
 
 
 # def greet():

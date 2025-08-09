@@ -7,10 +7,12 @@ import time
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
+from db import get_db
 from redis_setup import get_redis
 
-from utils.auth_helper import get_private_key, get_or_refresh_installation_token, oauth, GITHUB_PRIVATE_KEY_PATH
-
+from utils.auth_helper import get_private_key, get_or_refresh_installation_token, oauth, GITHUB_PRIVATE_KEY_PATH, create_jwt_token
+from models.user import User
+from utils.auth_helper import jwt_required
 
 auth_router = APIRouter()
 
@@ -22,17 +24,32 @@ async def login(request: Request):
     )
 
 @auth_router.get("/auth")
-async def auth(request: Request):
+async def auth(request: Request, db=Depends(get_db)):
     try:
         token = await oauth.github.authorize_access_token(request)
         user = await oauth.github.get('https://api.github.com/user', token=token)
-        request.session["user"] = user.json()
-        return RedirectResponse(url="/")
+        profile = user.json()
+        user = db.query(User).filter(User.github_id == profile['id']).first()
+        if not user:
+            user = User(
+                username=profile['login'],
+                name=profile.get('name'),
+                email=profile['email'],
+                avatar_url=profile.get('avatar_url'),
+                github_id=profile['id'],
+                bio=profile.get('bio')
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        access_token = create_jwt_token(user)
+        return RedirectResponse(url=f"{os.getenv("FRONTEND_URL")}?token={access_token}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @auth_router.get("/install-app")
+@jwt_required
 async def install_app(request: Request):
     """Initiate GitHub App installation flow"""
     if "user" not in request.session:

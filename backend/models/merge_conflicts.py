@@ -7,5 +7,5 @@ class MergeConflict(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     pr_id = Column(Integer, nullable=False)
-    status = Column(String, nullable=False, default='open')
+    status = Column(String, nullable=False, default='open') # open, closed, resolved, escalated, accepted, rejected
     created_at = Column(DateTime, nullable=False, default=datetime.now)

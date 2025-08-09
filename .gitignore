@@ -7,4 +7,5 @@ experiments/
 .vscode/
 *build/
 *dist/
-frontend/
+*node_modules/
+*.log

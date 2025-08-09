@@ -51,4 +51,4 @@ jobs:
       
       - name: Run the exe
         run: |
-          ./git-sleuth-cli --resolve-conflict --merge-id ${{ merge_id }}
+          ./git-sleuth-cli --resolve-conflict --merge-id ${{ inputs.merge_id }}
