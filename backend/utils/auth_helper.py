@@ -106,15 +106,16 @@ def create_jwt_token(user):
         "avatar_url": user.avatar_url,
         "github_id": user.github_id,
         "bio": user.bio,
-        "exp": timezone.utc() + timedelta(days=1)
+        "exp": datetime.now(timezone.utc) + timedelta(days=1)
     }
-    token = jwt.encode(payload, os.getenv("JWT_KEY"), algorithm="RS256")
+    token = jwt.encode(payload, os.getenv("JWT_KEY"), algorithm="HS256")
     return token
 
-def verify_token(token: str, db=Depends(get_db)):
+def verify_token(token: str):
     """Verify the JWT token and return the user data"""
     try:
-        payload = jwt.decode(token, os.getenv("JWT_KEY"), algorithms=["RS256"])
+        db = next(get_db())
+        payload = jwt.decode(token, os.getenv("JWT_KEY"), algorithms=["HS256"])
         user = db.query(User).filter(User.id == payload["user_id"]).first()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
@@ -138,5 +139,5 @@ def jwt_required(func):
         except HTTPException as e:
             return JSONResponse(status_code=401, content={"detail": e.detail})
 
-        return await func(request, *args, **kwargs)
+        return func(request, *args, **kwargs)
     return wrapper

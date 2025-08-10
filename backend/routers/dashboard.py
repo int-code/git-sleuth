@@ -11,9 +11,9 @@ from models.user import User
 from models.resolved_code import Resolved_code
 from utils.auth_helper import jwt_required
 
-router = APIRouter()
+dashboard_router = APIRouter()
 
-@router.get("/dashboard")
+@dashboard_router.get("/dashboard")
 @jwt_required
 def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
     user = request.state.user
@@ -33,10 +33,10 @@ def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
     # realtime_processing = active_monitors > 0
 
     pr = db.query(PullRequests).join(Repository, PullRequests.repo_id == Repository.id).join(User, User.id == Repository.user_id).filter(
-        User.id == user.user_id,
+        User.id == user.id,
     ).all()
-    this_week_pr = filter(lambda x: x.created_at >= datetime.now() - timedelta(days=7), pr)
-    prev_week_pr = filter(lambda x: x.created_at < datetime.now() - timedelta(days=7) and x.created_at >= datetime.now() - timedelta(days=14), pr)
+    this_week_pr = [x for x in pr if x.created_at >= datetime.now() - timedelta(days=7)]
+    prev_week_pr = [x for x in pr if x.created_at < datetime.now() - timedelta(days=7) and x.created_at >= datetime.now() - timedelta(days=14)]
     
     pr_count = len(this_week_pr)
     pr_change = len(this_week_pr) - len(prev_week_pr)
@@ -106,6 +106,8 @@ def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
             pr_conflict_timing[3][1] +=1
         elif hr>=20 or hr<8:
             pr_conflict_timing[4][1] +=1
+
+    
 
     return {
         "systems_operational": systems_operational,

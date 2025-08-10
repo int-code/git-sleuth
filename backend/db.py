@@ -1,8 +1,11 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import dotenv
 
-DATABASE_URL = os.getenv("DATABASE_URL") 
+dotenv.load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL").replace("%%", "%")
 
 engine = create_engine(
     DATABASE_URL
