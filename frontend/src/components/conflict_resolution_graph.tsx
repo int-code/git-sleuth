@@ -1,23 +1,31 @@
 import { FiTrendingUp } from "react-icons/fi";
-import { colors, gradients } from "./global_var";
+import { colors, gradients, type dataInterface } from "./global_var";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type PRVelocityProps = {
   hoveredCard: string | null;
   setHoveredCard: (card: string | null) => void;
+  data: dataInterface;
 };
 
 
-export const ResolutionGraph = ({ hoveredCard, setHoveredCard }: PRVelocityProps) =>{
-    const conflictTrendData = [
-        { day: 'Mon', resolved: 12, pending: 3, escalated: 1 },
-        { day: 'Tue', resolved: 18, pending: 5, escalated: 2 },
-        { day: 'Wed', resolved: 15, pending: 2, escalated: 0 },
-        { day: 'Thu', resolved: 22, pending: 4, escalated: 1 },
-        { day: 'Fri', resolved: 19, pending: 1, escalated: 0 },
-        { day: 'Sat', resolved: 8, pending: 0, escalated: 0 },
-        { day: 'Sun', resolved: 6, pending: 1, escalated: 0 }
-    ];
+export const ResolutionGraph = ({ hoveredCard, setHoveredCard, data }: PRVelocityProps) =>{
+    const transformData = (data: Record<string, { resolved: number; pending: number; escalated: number }>) => {
+        return Object.entries(data).map(([day, stats]) => ({
+            day,
+            ...stats
+        }));
+    };
+    const conflictTrendData = transformData(data.conflict_matrix);
+    // const conflictTrendData = [
+    //     { day: 'Mon', resolved: 12, pending: 3, escalated: 1 },
+    //     { day: 'Tue', resolved: 18, pending: 5, escalated: 2 },
+    //     { day: 'Wed', resolved: 15, pending: 2, escalated: 0 },
+    //     { day: 'Thu', resolved: 22, pending: 4, escalated: 1 },
+    //     { day: 'Fri', resolved: 19, pending: 1, escalated: 0 },
+    //     { day: 'Sat', resolved: 8, pending: 0, escalated: 0 },
+    //     { day: 'Sun', resolved: 6, pending: 1, escalated: 0 }
+    // ];
     return (
         <div 
             className="lg:col-span-2 group cursor-pointer"

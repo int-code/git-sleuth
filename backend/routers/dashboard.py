@@ -72,6 +72,13 @@ def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
     for conflict in conflicts:
         if conflict.created_at < datetime.now() - timedelta(days=7):
             continue
+        if func.to_char(conflict.created_at, 'Day') not in conflict_matrix:
+            conflict_matrix[func.to_char(conflict.created_at, 'Day')] = {
+                'resolved': 0,
+                'pending': 0,
+                'escalated': 0,
+                'closed': 0
+            }
         if conflict.status in ['resolved', 'accepted', 'rejected']:
             conflict_matrix[func.to_char(conflict.created_at, 'Day')]['resolved'] += 1
         elif conflict.status == 'open':

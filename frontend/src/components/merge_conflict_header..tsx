@@ -22,12 +22,12 @@ export const MergeConflictHeader = ({ handleRefresh,
                                     setFilterStatus}: HeaderProps) =>{
     const getTotalConflicts = () => {
         return repositories.reduce((total, repo) => {
-        return total + repo.pullRequests.filter(pr => pr.hasConflict).length;
+        return total + repo.pull_requests.filter(pr => pr.mergeable).length;
         }, 0);
     };
     const getResolvedConflicts = () => {
     return repositories.reduce((total, repo) => {
-      return total + repo.pullRequests.filter(pr => pr.hasConflict && pr.conflictResolution === 'resolved').length;
+      return total + repo.pull_requests.filter(pr => pr.mergeable).length;
     }, 0);
   };
     return (
@@ -92,7 +92,7 @@ export const MergeConflictHeader = ({ handleRefresh,
             </div>
             <div className="dashboard-card" style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: colors.warning }}>
-                {repositories.reduce((total, repo) => total + repo.pullRequests.length, 0)}
+                {repositories.reduce((total, repo) => total + repo.pull_requests.length, 0)}
               </div>
               <div style={{ color: colors.borderLight }}>Total Pull Requests</div>
             </div>

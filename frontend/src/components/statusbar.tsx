@@ -1,29 +1,50 @@
 import { useEffect, useState } from "react";
-import { gradients, colors } from "./global_var"
+import { gradients, colors, type dataInterface } from "./global_var"
 import { BsFillLightningFill } from 'react-icons/bs';
 import { 
   FiActivity,
   FiRefreshCw
 } from 'react-icons/fi';
 
-export const Statusbar = () => {
+type StatusbarProps = {
+    data: dataInterface;
+    setData: (data: dataInterface) => void
+}
+
+export const Statusbar = ({data, setData}: StatusbarProps) => {
     const [pulse, setPulse] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [lastSet, setLastSet] = useState<Date | null>(null);
     
     // Animation pulse for realtime indicator
     useEffect(() => {
         const interval = setInterval(() => {
           setPulse(v => !v);
         }, 2000);
+        handleSync();
         return () => clearInterval(interval);
     }, []);
 
-    const handleSync = () => {
+    const handleSync = async () => {
         setSyncing(true);
-        // Simulate sync operation
-        setTimeout(() => {
-            setSyncing(false);
-        }, 2000); // 2 second sync simulation
+        const url = import.meta.env.VITE_API_URL + '/dashboard';
+        const token = sessionStorage.getItem('token');
+        const refreshed_data = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }})
+        if (refreshed_data.status == 401) {
+            alert("Session expired. Please log in again.");
+            sessionStorage.removeItem('token');
+            window.location.href = '/';
+            return;
+        }
+        const data = await refreshed_data.json();
+        setData(data);
+        setLastSet(new Date());
+        setSyncing(false);
     };
 
     return (
@@ -57,10 +78,10 @@ export const Statusbar = () => {
                     <BsFillLightningFill className="mr-2" />
                     <span style={{ fontWeight: 600 }}>REALTIME PROCESSING</span>
                 </div>
-                <div className="flex items-center" style={{ color: colors.secondary }}>
+                {/* <div className="flex items-center" style={{ color: colors.secondary }}>
                     <FiActivity className="mr-2" />
                     <span>42 ACTIVE MONITORS</span>
-                </div>
+                </div> */}
                 </div>
                 <div className="flex items-center space-x-3">
                     <button
@@ -87,7 +108,18 @@ export const Statusbar = () => {
                             color: colors.accent, 
                             fontWeight: 600,
                             textShadow: `0 0 10px ${colors.accent}`
-                        }}>LIVE FEED</span>
+                        }}>
+                            {lastSet
+                            ? (() => {
+                                const diff = (Date.now() - lastSet.getTime()) / 1000;
+                                if (diff < 1) return "NOW";
+                                if (diff < 60) return `${Math.floor(diff)}s ago`;
+                                if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                                return `${Math.floor(diff / 3600)}h ago`;
+                            })()
+                            : "Never"
+                            }
+                        </span>
                     </div>
                 </div>
             </div>

@@ -41,30 +41,55 @@ surface: `linear-gradient(135deg, ${colors.surface} 0%, ${colors.surfaceLight} 1
 };
 
 
-export interface pullRequest {
-    id: number;
-    title: string;
-    author: string;
-    branch: string;
-    targetBranch: string;
-    status: string;
-    hasConflict: boolean;
-    conflictResolution: string | null;
-    createdAt: string;
-    updatedAt: string;
-    conflictFiles: string[];
-    reviewers: string[];
-    assignee: string;
+interface pr {
+  id : number;
+  repo_id : number;
+  pr_number : number;
+  installation_id : number;
+  url : string;
+  github_id : number;
+  node_id : string;
+  state : string;
+  title : string;
+  closed_at : Date | null;
+  merged_at : Date | null;
+  mergeable : boolean | null;
+  commits : number;
+  details : string | null;
+  created_at : Date;
 }
 
 export interface repository {
-    id: number
-    name: string;
-    owner: string;
-    description: string;
-    language: string;
-    stars: number;
-    forks: number;
-    lastUpdate: string;
-    pullRequests: Array<pullRequest>
+  id : number;
+  user_id : number;
+  installation_id : number;
+  github_id : number;
+  node_id : string;
+  name : string;
+  full_name : string;
+  private : boolean;
+  status : string;
+  created_at : Date;
+  pull_requests: Array<pr>;
+}
+
+
+
+type conflict_single_day = {
+  'resolved': number,
+  'pending': number,
+  'escalated': number,
+  'closed': number
+}
+
+export type dataInterface = {
+  systems_operational: boolean,
+  pr_count: number,
+  pr_change_percentage: number,
+  num_resolved: number,
+  num_pending: number,
+  num_accepted: number,
+  confidence_matrix: Array<Array<number>>,
+  conflict_matrix: Record<string, conflict_single_day>,
+  pr_conflict_timing: Array<Array<number>>
 }

@@ -1,12 +1,13 @@
 import { FiAlertCircle } from "react-icons/fi";
-import { gradients, colors } from "./global_var";
+import { gradients, colors, type dataInterface } from "./global_var";
 
 type PRVelocityProps = {
   hoveredCard: string | null;
   setHoveredCard: (card: string | null) => void;
+  data: dataInterface
 };
 
-export const ConflictMatrix = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => {
+export const ConflictMatrix = ({ hoveredCard, setHoveredCard, data }: PRVelocityProps) => {
     return (
         <div 
             className="group cursor-pointer"
@@ -56,9 +57,9 @@ export const ConflictMatrix = ({ hoveredCard, setHoveredCard }: PRVelocityProps)
             
             <div className="grid grid-cols-3 gap-4 mb-8 relative z-10">
                 {[
-                { value: '42', label: 'Resolved', color: colors.accent, gradient: gradients.accent },
-                { value: '8', label: 'Pending', color: colors.warning, gradient: `linear-gradient(135deg, ${colors.warning} 0%, rgb(251 191 36) 100%)` },
-                { value: '3', label: 'Escalated', color: colors.danger, gradient: `linear-gradient(135deg, ${colors.danger} 0%, rgb(248 113 113) 100%)` }
+                { value: data.num_resolved, label: 'Resolved', color: colors.accent, gradient: gradients.accent },
+                { value: data.num_pending, label: 'Pending', color: colors.warning, gradient: `linear-gradient(135deg, ${colors.warning} 0%, rgb(251 191 36) 100%)` },
+                { value: data.num_accepted, label: 'Escalated', color: colors.danger, gradient: `linear-gradient(135deg, ${colors.danger} 0%, rgb(248 113 113) 100%)` }
                 ].map((item, index) => (
                 <div 
                     key={index}
@@ -93,7 +94,7 @@ export const ConflictMatrix = ({ hoveredCard, setHoveredCard }: PRVelocityProps)
                 ))}
             </div>
             
-            <div className="relative z-10" style={{
+            {/* <div className="relative z-10" style={{
                 fontSize: '0.9rem',
                 color: 'rgba(220, 225, 235, 0.8)',
                 textAlign: 'center'
@@ -103,7 +104,7 @@ export const ConflictMatrix = ({ hoveredCard, setHoveredCard }: PRVelocityProps)
                 fontWeight: 700,
                 fontSize: '1.1rem'
                 }}>95%</span> auto-resolution success rate
-            </div>
+            </div> */}
             </div>
         </div>
     )

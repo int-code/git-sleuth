@@ -43,7 +43,7 @@ async def auth(request: Request, db=Depends(get_db)):
             db.commit()
             db.refresh(user)
         access_token = create_jwt_token(user)
-        return RedirectResponse(url=f"{os.getenv("FRONTEND_URL")}?token={access_token}")
+        return RedirectResponse(url=f"{os.getenv('FRONTEND_URL')}?token={access_token}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -98,7 +98,7 @@ async def installation_callback(
         await get_or_refresh_installation_token(installation_id)
         
         
-        return {"status": "success", "installation_id": installation_id}
+        return RedirectResponse(url=f"{os.getenv('FRONTEND_URL')}")
     
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=400, detail="Expired state token")

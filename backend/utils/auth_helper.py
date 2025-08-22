@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from http.client import HTTPException
+from fastapi import HTTPException
 import os
 from pathlib import Path
 import time

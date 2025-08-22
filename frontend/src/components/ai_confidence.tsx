@@ -1,24 +1,48 @@
 import { FiBarChart2 } from "react-icons/fi";
-import { gradients, colors } from "./global_var";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart } from 'recharts';
+import { gradients, colors, type dataInterface } from "./global_var";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, BarChart, Bar } from 'recharts';
 
 type PRVelocityProps = {
   hoveredCard: string | null;
   setHoveredCard: (card: string | null) => void;
+  data: dataInterface;
 };
 
-// Mock data: confidence vs accepted (1) or rejected (0)
-const confidenceData = [
-  { confidence: 0.92, accepted: 1 },
-  { confidence: 0.87, accepted: 1 },
-  { confidence: 0.81, accepted: 1 },
-  { confidence: 0.78, accepted: 0 },
-  { confidence: 0.69, accepted: 0 },
-  { confidence: 0.95, accepted: 1 },
-  { confidence: 0.60, accepted: 0 },
-];
+export const AIConfidence = ({ hoveredCard, setHoveredCard, data }: PRVelocityProps) => {
+  
+  const confidenceData = data.confidence_matrix.map((item, index) => ({
+    confidenceRange: `${index * 10}-${(index + 1) * 10}%`,
+    accepted: item[0],
+    rejected: item[1],
+    total: item[0] + item[1]
+  }));
+  
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      payload: { total: number };
+    }>;
+    label?: string | number;
+  }) => {
+    if (active && payload && payload.length) {
+      const total = payload[0].payload.total;
+      return (
+        <div className="bg-gray-800 border border-gray-600 rounded p-3 text-white text-sm">
+          <p className="font-semibold">{`Confidence: ${label}`}</p>
+          <p style={{ color: colors.accent }}>{`Accepted: ${payload[0].value}`}</p>
+          <p style={{ color: colors.danger }}>{`Rejected: ${payload[1]?.value || 0}`}</p>
+          <p className="text-gray-300">{`Total: ${total}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
-export const AIConfidence = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => {
   return (
     <div 
       className="group cursor-pointer"
@@ -76,38 +100,52 @@ export const AIConfidence = ({ hoveredCard, setHoveredCard }: PRVelocityProps) =
         </div>
 
         {/* Correlation Chart */}
-        <div className="relative z-10 h-52">
-          <h4 className="text-sm font-semibold text-gray-300 mb-2">Confidence vs. Acceptance</h4>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart margin={{ top: 10, right: 20, bottom: 10, left: -10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis 
-                type="number" 
-                dataKey="confidence" 
-                name="Confidence" 
-                domain={[0.5, 1]} 
-                tick={{ fill: "#ccc", fontSize: 12 }}
-              />
-              <YAxis 
-                type="number" 
-                dataKey="accepted" 
-                name="Accepted" 
-                domain={[-0.1, 1.1]} 
-                tick={{ fill: "#ccc", fontSize: 12 }} 
-                tickFormatter={(v) => (v === 1 ? "Accepted" : "Rejected")}
-              />
-              <Tooltip 
-                cursor={{ strokeDasharray: '3 3' }}
-                contentStyle={{ backgroundColor: "#1f2937", borderColor: "#374151", color: "#fff" }}
-                formatter={(val, name) => [val, name === "accepted" ? "Status" : "Confidence"]}
-              />
-              <Scatter 
-                name="Resolutions" 
-                data={confidenceData} 
-                fill={colors.accent} 
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="relative z-10 h-56 bg-gray-900 rounded-xl overflow-hidden">
+          <div className="p-4 pb-2">
+            <h4 className="text-sm font-semibold text-gray-300">Confidence vs. Acceptance</h4>
+          </div>
+          <div className="h-full px-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={confidenceData}
+                margin={{ top: 10, right: 15, bottom: 60, left: 15 }}
+                barCategoryGap="15%"
+              >
+                <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.08)" />
+                <XAxis 
+                  dataKey="confidenceRange"
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  tickLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis 
+                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  tickLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                  width={35}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar 
+                  dataKey="accepted" 
+                  stackId="a" 
+                  fill={colors.accent}
+                  name="Accepted"
+                  radius={[0, 0, 0, 0]}
+                />
+                <Bar 
+                  dataKey="rejected" 
+                  stackId="a" 
+                  fill={colors.danger}
+                  name="Rejected"
+                  radius={[2, 2, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

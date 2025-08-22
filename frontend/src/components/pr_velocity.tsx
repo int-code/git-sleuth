@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { gradients, colors } from "./global_var";
+import type { dataInterface } from "./global_var";
 import { FiGitPullRequest} from 'react-icons/fi';
 
 type PRVelocityProps = {
   hoveredCard: string | null;
   setHoveredCard: (card: string | null) => void;
+  data: dataInterface;
 };
 
-export const PRVelocity = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => {
+export const PRVelocity = ({ hoveredCard, setHoveredCard, data }: PRVelocityProps) => {
     
     return (
         <div 
@@ -53,7 +55,7 @@ export const PRVelocity = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => 
                 border: `1px solid rgba(99, 102, 241, 0.4)`,
                 backdropFilter: 'blur(10px)'
               }}>
-                +12.4%
+                +{data.pr_change_percentage}%
               </span>
             </div>
             
@@ -67,7 +69,7 @@ export const PRVelocity = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => 
                 WebkitTextFillColor: 'transparent',
                 marginBottom: '12px',
                 textShadow: hoveredCard === 'pr-velocity' ? '0 0 30px rgba(99, 102, 241, 0.5)' : 'none'
-              }}>24</span>
+              }}>{data.pr_count}</span>
               <p style={{ 
                 fontSize: '1rem', 
                 color: 'rgba(220, 225, 235, 0.8)',
@@ -75,7 +77,7 @@ export const PRVelocity = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => 
                 fontWeight: 500
               }}>Pull requests this week</p>
               
-              <div className="flex justify-between items-end">
+              {/* <div className="flex justify-between items-end">
                 <div>
                   <span style={{ fontSize: '0.85rem', color: 'rgba(220, 225, 235, 0.6)' }}>Target: 30/wk</span>
                   <div className="mt-2 w-20 h-2 rounded-full" style={{ backgroundColor: 'rgba(220, 225, 235, 0.2)' }}>
@@ -92,7 +94,7 @@ export const PRVelocity = ({ hoveredCard, setHoveredCard }: PRVelocityProps) => 
                   fontWeight: 700,
                   textShadow: `0 0 15px ${colors.accent}`
                 }}>80% efficiency</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

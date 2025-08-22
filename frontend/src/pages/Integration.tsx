@@ -7,24 +7,30 @@ type ActiveTabProp = {
 };
 
 export const Integrations = ({ activeTab }: ActiveTabProp) => {
-    const [selectedRepo, setSelectedRepo] = useState('');
-    const [isConnecting, setIsConnecting] = useState(false);
-    
-    const repositories = [
-        { name: "awesome-project", owner: "yourorg", connected: true, lastSync: "2 minutes ago" },
-        { name: "frontend-app", owner: "yourorg", connected: true, lastSync: "1 hour ago" },
-        { name: "backend-api", owner: "yourorg", connected: false, lastSync: "Never" },
-        { name: "mobile-app", owner: "yourorg", connected: false, lastSync: "Never" }
-    ];
+    const [repositories, setRepositories] = useState([]);
 
-    const handleGitHubIntegration = () => {
-        // Redirect to GitHub App installation page
-        window.open('https://github.com/apps/your-app-name/installations/new', '_blank');
+    const fetchRepositories = async () =>{
+        const apiUrl = import.meta.env.VITE_API_URL+'/repositories';
+        const resp = await fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+            }
+        });
+
+        const repos = await resp.json();
+        setRepositories(repos);
     };
+    
+    // const repositories = [
+    //     { name: "awesome-project", owner: "yourorg", connected: true, lastSync: "2 minutes ago" },
+    //     { name: "frontend-app", owner: "yourorg", connected: true, lastSync: "1 hour ago" },
+    //     { name: "backend-api", owner: "yourorg", connected: false, lastSync: "Never" },
+    //     { name: "mobile-app", owner: "yourorg", connected: false, lastSync: "Never" }
+    // ];
 
     const handleManageInstallations = () => {
-        // Redirect to GitHub App installations management
-        window.open('https://github.com/settings/installations', '_blank');
+        const url = import.meta.env.VITE_API_URL + "/install-app";
+        window.open(url);
     };
 
     return (
@@ -55,40 +61,87 @@ export const Integrations = ({ activeTab }: ActiveTabProp) => {
                 
                 {/* Integration Status */}
                 <div className="dashboard-card">
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <Shield size={24} color={colors.primary} style={{ marginRight: '0.5rem' }} />
-                        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Integration Status</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+                        <Shield size={24} color={colors.primary} style={{ marginRight: '0.75rem' }} />
+                        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Connected Repositories</h2>
                     </div>
                     
                     <div style={{ 
-                        background: gradients.primary, 
-                        padding: '1rem', 
-                        borderRadius: '0.75rem',
-                        marginBottom: '1rem'
+                        textAlign: 'center',
+                        padding: '2.5rem 1.5rem',
+                        // background: `linear-gradient(135deg, ${colors.primary}15, ${colors.accent}10)`,
+                        borderRadius: '1rem',
+                        border: `1px solid ${colors.primary}20`,
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontWeight: '600' }}>GitHub App Connected</span>
-                            <Check size={20} />
+                        {/* Background decoration */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '-50%',
+                            right: '-50%',
+                            width: '100%',
+                            height: '100%',
+                            background: `radial-gradient(circle, ${colors.primary}08 0%, transparent 70%)`,
+                            pointerEvents: 'none'
+                        }} />
+                        
+                        <div style={{ 
+                            fontSize: '3.5rem', 
+                            fontWeight: '800', 
+                            color: colors.primary,
+                            lineHeight: 1,
+                            marginBottom: '0.5rem',
+                            background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                        }}>
+                            {repositories.filter(r => r.connected).length}
                         </div>
-                        <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '0.875rem' }}>
-                            App installed and monitoring repositories
-                        </p>
+                        
+                        <div style={{ 
+                            fontSize: '1rem', 
+                            color: colors.borderLight,
+                            fontWeight: '500',
+                            letterSpacing: '0.025em',
+                            textTransform: 'uppercase'
+                        }}>
+                            Active Connections
+                        </div>
+                        
+                        {/* Status indicator */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginTop: '1.5rem',
+                            gap: '0.5rem'
+                        }}>
+                            <div style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: colors.primary,
+                                animation: 'pulse 2s infinite',
+                                boxShadow: `0 0 10px ${colors.primary}50`
+                            }} />
+                            <span style={{ 
+                                fontSize: '0.875rem', 
+                                color: colors.primary,
+                                fontWeight: '500'
+                            }}>
+                                Live Monitoring
+                            </span>
+                        </div>
                     </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.primary }}>
-                                {repositories.filter(r => r.connected).length}
-                            </div>
-                            <div style={{ fontSize: '0.875rem', color: colors.borderLight }}>Connected Repos</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: colors.accent }}>
-                                24/7
-                            </div>
-                            <div style={{ fontSize: '0.875rem', color: colors.borderLight }}>Monitoring</div>
-                        </div>
-                    </div>
+                    
+                    <style>{`
+                        @keyframes pulse {
+                            0%, 100% { opacity: 1; transform: scale(1); }
+                            50% { opacity: 0.7; transform: scale(1.1); }
+                        }
+                    `}</style>
                 </div>
 
                 {/* Quick Actions */}
@@ -107,25 +160,6 @@ export const Integrations = ({ activeTab }: ActiveTabProp) => {
                         </p>
                         
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button 
-                                onClick={handleGitHubIntegration}
-                                style={{
-                                    padding: '0.75rem 1.5rem',
-                                    borderRadius: '0.5rem',
-                                    border: 'none',
-                                    background: gradients.primary,
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                    fontWeight: '600',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem'
-                                }}
-                            >
-                                <ExternalLink size={18} />
-                                Install GitHub App
-                            </button>
                             
                             <button 
                                 onClick={handleManageInstallations}
@@ -144,7 +178,7 @@ export const Integrations = ({ activeTab }: ActiveTabProp) => {
                                 }}
                             >
                                 <Settings size={18} />
-                                Manage Installations
+                                Add or Manage Installations
                             </button>
                         </div>
                     </div>

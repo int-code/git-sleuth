@@ -20,7 +20,7 @@ const GitHubLogin = () => {
   const handleGitHubLogin = () => {
     setIsLoading(true);
     const apiUrl = import.meta.env.VITE_API_URL+"/login";
-    fetch(apiUrl);
+    window.location.href = apiUrl;
   };
 
   type FloatingIconProps = {
