@@ -15,7 +15,7 @@ dashboard_router = APIRouter()
 
 @dashboard_router.get("/dashboard")
 @jwt_required
-def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
+async def get_statusbar_data(request: Request, db: Session = Depends(get_db)):
     user = request.state.user
     # Example logic, tweak as needed
     

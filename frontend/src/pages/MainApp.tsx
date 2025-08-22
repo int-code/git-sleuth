@@ -117,6 +117,7 @@ function MainApp() {
           mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           mask-composite: xor;
           -webkit-mask-composite: xor;
+          pointer-events: none;
         }
 
         .status-indicator {

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from db import get_db
 from redis_setup import get_redis
 
-from utils.auth_helper import get_private_key, get_or_refresh_installation_token, oauth, GITHUB_PRIVATE_KEY_PATH, create_jwt_token
+from utils.auth_helper import get_private_key, get_or_refresh_installation_token, oauth, GITHUB_PRIVATE_KEY_PATH, create_jwt_token, verify_token
 from models.user import User
 from utils.auth_helper import jwt_required
 
@@ -47,31 +47,36 @@ async def auth(request: Request, db=Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
 @auth_router.get("/install-app")
-@jwt_required
-async def install_app(request: Request):
-    """Initiate GitHub App installation flow"""
-    if "user" not in request.session:
-        return RedirectResponse(url="/login")
-    
-    print("User session:", request.session["user"])
-    
-    # Generate state to prevent CSRF
+async def install_app(request: Request, token: str = Query(...)):
+    try:
+        user:User = verify_token(token)
+        # print("User verified:", user)
+        request.session["user"] = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "avatar_url": user.avatar_url,
+            "github_id": user.github_id,
+            "bio": user.bio,
+            "created_at": user.created_at.isoformat()
+        }
+    except HTTPException as e:
+        return RedirectResponse(url=os.getenv("FRONTEND_URL"))
+
+    # Generate state
     state = jwt.encode(
-        {"user_id": request.session["user"]["id"], "exp": time.time() + 300},
+        {"user_id": user.id, "exp": time.time() + 300},
         get_private_key(),
         algorithm="RS256"
     )
-    
-    # GitHub App installation URL
+
     installation_url = (
         f"https://github.com/apps/{os.getenv('GITHUB_APP_NAME')}/installations/new"
         f"?state={state}"
     )
-    
-    return RedirectResponse(url=installation_url)
 
+    return RedirectResponse(url=installation_url)
 
 @auth_router.get("/installation-callback")
 async def installation_callback(

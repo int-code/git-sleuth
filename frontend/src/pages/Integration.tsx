@@ -30,7 +30,8 @@ export const Integrations = ({ activeTab }: ActiveTabProp) => {
 
     const handleManageInstallations = () => {
         const url = import.meta.env.VITE_API_URL + "/install-app";
-        window.open(url);
+        // Navigate the browser, including the JWT token
+        window.location.href = url + `?token=${sessionStorage.getItem("token")}`;
     };
 
     return (

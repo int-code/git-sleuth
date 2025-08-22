@@ -139,5 +139,5 @@ def jwt_required(func):
         except HTTPException as e:
             return JSONResponse(status_code=401, content={"detail": e.detail})
 
-        return func(request, *args, **kwargs)
+        return await func(request, *args, **kwargs)
     return wrapper
