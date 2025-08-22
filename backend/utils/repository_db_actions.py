@@ -1,3 +1,4 @@
+from models.user import User
 from config import celery_app
 from models.repo import Repository
 from celery import current_task
@@ -21,6 +22,8 @@ def handle_add_repositories(repositories: list, installation_id: int = None):
             entry.status = "active"
             db_session.commit()
         else:
+            user = repo["full_name"].split("/")[0]
+            repo["user_id"] = db_session.query(User).filter(User.username == user).first().id
             new_entry = Repository(installation_id=installation_id, github_id=github_id, **repo)
             db_session.add(new_entry)
     db_session.commit()
