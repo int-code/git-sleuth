@@ -8,9 +8,9 @@ from models.pr import PullRequests
 from models.merge_conflicts import MergeConflict
 
 
-merge_details_router = APIRouter()
+user_router = APIRouter()
 
-@merge_details_router.get("/user")
+@user_router.get("/user")
 @jwt_required
 async def get_merge_details(request: Request, db: Session = Depends(get_db)):
     user = request.state.user

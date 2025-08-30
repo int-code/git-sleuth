@@ -11,6 +11,7 @@ from routers.merge_conflict import mc_router
 from routers.tasks import task_router
 from routers.dashboard import dashboard_router
 from routers.merge_details import merge_details_router
+from routers.user import user_router
 from db import init_db
 from logger import setup_logging
 
@@ -50,3 +51,4 @@ app.include_router(mc_router, tags=["merge_conflict"])
 app.include_router(task_router, tags=["tasks"])
 app.include_router(dashboard_router, tags=["dashboard"])
 app.include_router(merge_details_router, tags=["merge_details"])
+app.include_router(user_router, tags=["user"])

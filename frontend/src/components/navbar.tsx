@@ -138,13 +138,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                     className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md hover:shadow-lg transition"
                     title="User Profile"
                     >
-                    <FiUser size={18} color="white" />
+                        {profileData.avatarUrl =='' ? <FiUser size={18} color="white" />: <img src={profileData.avatarUrl} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />}
+                    
                     </button>
 
                     {showProfileDropdown && (
                     <div className="absolute right-0 mt-2 w-48 bg-[#101928] rounded-lg shadow-lg py-3 px-4 text-sm text-gray-200 z-50 border border-[#2a2f3c]">
-                        <div className="font-semibold text-white mb-2">Pubali Basak</div>
-                        <div className="text-xs mb-4 text-gray-400">pubali@example.com</div>
+                        <div className="font-semibold text-white mb-2">{profileData.name}</div>
+                        <div className="text-xs mb-4 text-gray-400">{profileData.email}</div>
                         <hr className="border-gray-600 mb-3" />
                         <button className="w-full text-left text-gray-300 hover:text-white py-1 cursor-pointer" onClick={handleManageInstallations}>Manage Installations</button>
                         <button className="w-full text-left text-gray-300 hover:text-white py-1 cursor-pointer" onClick={handleLogout}>Logout</button>
