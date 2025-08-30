@@ -93,3 +93,11 @@ export type dataInterface = {
   conflict_matrix: Record<string, conflict_single_day>,
   pr_conflict_timing: Array<Array<number>>
 }
+
+export type PRResponse = {
+  "total_repos": number
+  "total_prs": number,
+  "active_conflicts_suggestions": number,
+  "resolved_conflicts_suggestions": number,
+  "pr_info": Array<repository>,
+};

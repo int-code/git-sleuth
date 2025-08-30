@@ -3,7 +3,7 @@ import {
   FiCpu, FiDatabase,
   FiHome,
 } from 'react-icons/fi';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { colors, gradients } from './global_var'
 
 type NavigationProps = {
@@ -13,6 +13,45 @@ type NavigationProps = {
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [profileData, setProfileData] = useState({
+        name: "Loading ...",
+        email: "Loading ...",
+        avatarUrl: ""
+    });
+
+    useEffect(() => {
+        // Fetch user profile data from backend
+        const token = sessionStorage.getItem("token");
+        if (!token) return;
+        fetch(import.meta.env.VITE_API_URL + "/user", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).then(data => {
+            setProfileData({
+                name: data.name || "Unknown User",
+                email: data.email || "No Email",
+                avatarUrl: data.avatar_url || ""
+            });
+        });
+    }, []);
+
+    const handleManageInstallations = () => {
+        const url = import.meta.env.VITE_API_URL + "/install-app";
+        // Navigate the browser, including the JWT token
+        window.location.href = url + `?token=${sessionStorage.getItem("token")}`;
+    };
+    const handleLogout = () => {
+        sessionStorage.removeItem("token");
+        window.location.href = '/login'; // Redirect to login page or homepage
+    };
   
     return (
     <nav className="sticky top-0 z-50" style={{
@@ -58,7 +97,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                 { id: 'agent-logs', icon: <FiCpu />, label: 'AI Logs', status: 'disabled'},
                 { id: 'home', icon: <FiHome />, label: 'Home'},
                 { id: 'merge-conflict', icon: <FiGitMerge />, label: 'Merge Intel' },  
-                { id: 'integrations', icon: <FiDatabase />, label: 'Integrations' }
+                // { id: 'integrations', icon: <FiDatabase />, label: 'Integrations' }
             ].map(tab => (
                 <button
                 key={tab.id}
@@ -107,7 +146,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                         <div className="font-semibold text-white mb-2">Pubali Basak</div>
                         <div className="text-xs mb-4 text-gray-400">pubali@example.com</div>
                         <hr className="border-gray-600 mb-3" />
-                        <button className="w-full text-left text-gray-300 hover:text-white py-1">Logout</button>
+                        <button className="w-full text-left text-gray-300 hover:text-white py-1 cursor-pointer" onClick={handleManageInstallations}>Manage Installations</button>
+                        <button className="w-full text-left text-gray-300 hover:text-white py-1 cursor-pointer" onClick={handleLogout}>Logout</button>
                     </div>
                     )}
                 </div>

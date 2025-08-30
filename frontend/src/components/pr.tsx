@@ -90,12 +90,12 @@ export const PullRequest = ({ repo }: Props) => {
                         />
                     </div>
                     <p style={{ color: colors.borderLight, margin: '0 0 1rem 0' }}>
-                        Status: {repo.status} • Created {formatDate(repo.created_at)}
+                        Status: {repo.status} • Created {formatDate(new Date(repo.created_at))}
                     </p>
                     <div style={{ display: 'flex', gap: '2rem', fontSize: '0.9rem', color: colors.borderLight }}>
                         <span>📋 {repo.pull_requests.length} PRs</span>
                         <span>🔗 ID: {repo.github_id}</span>
-                        <span>Updated {formatDate(repo.created_at)}</span>
+                        <span>Updated {formatDate(new Date(repo.created_at))}</span>
                     </div>
                 </div>
                 <div style={{ 
@@ -151,7 +151,7 @@ export const PullRequest = ({ repo }: Props) => {
                                                 <span>Commits: {pr.commits}</span>
                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     <Calendar size={14} />
-                                                    {formatDate(pr.created_at)}
+                                                    {formatDate(new Date(pr.created_at))}
                                                 </span>
                                             </div>
                                             {/* {pr.details && (
@@ -241,7 +241,7 @@ export const PullRequest = ({ repo }: Props) => {
                                             gap: '0.5rem'
                                         }}>
                                             <Clock size={14} />
-                                            Closed: {formatDate(pr.closed_at)}
+                                            Closed: {formatDate(new Date(pr.closed_at))}
                                         </div>
                                     )}
 
@@ -255,7 +255,7 @@ export const PullRequest = ({ repo }: Props) => {
                                             gap: '0.5rem'
                                         }}>
                                             <CheckCircle size={14} />
-                                            Merged: {formatDate(pr.merged_at)}
+                                            Merged: {formatDate(new Date(pr.merged_at))}
                                         </div>
                                     )}
                                 </div>

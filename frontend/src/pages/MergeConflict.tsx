@@ -1,6 +1,6 @@
 import { AlertTriangle, Calendar, CheckCircle, Clock, GitBranch, Users } from "lucide-react";
-import { colors, gradients, type repository } from "../components/global_var";
-import { useState } from "react";
+import { colors, gradients, type PRResponse } from "../components/global_var";
+import { useEffect, useState } from "react";
 import { MergeConflictHeader } from "../components/merge_conflict_header.";
 import { PullRequest } from "../components/pr";
 
@@ -14,10 +14,16 @@ export const MergeConflict = ({ activeTab }: ActiveTabProp) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [data, setData] = useState<repository[]>([]);
+  const [data, setData] = useState<PRResponse>({
+    "total_repos": 0,
+    "total_prs": 0,
+    "active_conflicts_suggestions": 0,
+    "resolved_conflicts_suggestions": 0,
+    "pr_info": []
+  });
 
   // Filter repositories based on search and conflict status
-  const filteredRepositories = data.filter(repo => {
+  const filteredRepositories = data.pr_info.filter(repo => {
     const matchesSearch = repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          repo.full_name.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -57,6 +63,10 @@ export const MergeConflict = ({ activeTab }: ActiveTabProp) => {
       });
   };
 
+  useEffect(() => {
+    handleRefresh();
+  }, []);
+
   return (
     activeTab == "merge-conflict" &&
     <div style={{ 
@@ -70,7 +80,7 @@ export const MergeConflict = ({ activeTab }: ActiveTabProp) => {
       <MergeConflictHeader 
         handleRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        repositories={data}
+        repositories={data.pr_info}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         filterStatus={filterStatus}
