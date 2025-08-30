@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, CheckCircle, Clock, GitBranch, Users, ChevronRight } from "lucide-react"
+import { AlertTriangle, Calendar, CheckCircle, Clock, GitBranch, ChevronRight } from "lucide-react"
 import { useState } from "react"
 import { colors, gradients } from "./global_var"
 import type { repository } from "./global_var"
@@ -42,7 +42,7 @@ export const PullRequest = ({ repo }: Props) => {
     };
 
     // Extract owner and repo name from full_name
-    const [owner, repoName] = repo.full_name.split('/');
+    // const [owner, repoName] = repo.full_name.split('/');
     const conflictCount = repo.pull_requests.filter(pr => pr.mergeable === false).length;
 
     return (
@@ -275,7 +275,7 @@ export const PullRequest = ({ repo }: Props) => {
                 </div>
             )}
 
-            <style jsx>{`
+            <style>{`
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(-10px); }
                     to { opacity: 1; transform: translateY(0); }

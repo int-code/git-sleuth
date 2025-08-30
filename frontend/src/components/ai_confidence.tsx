@@ -1,6 +1,6 @@
 import { FiBarChart2 } from "react-icons/fi";
 import { gradients, colors, type dataInterface } from "./global_var";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, BarChart, Bar } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 type PRVelocityProps = {
   hoveredCard: string | null;

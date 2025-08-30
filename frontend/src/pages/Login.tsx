@@ -44,7 +44,7 @@ const GitHubLogin = () => {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           33% { transform: translateY(-10px); }
@@ -189,10 +189,10 @@ const GitHubLogin = () => {
                 background: 'linear-gradient(135deg, rgb(93, 218, 255) 0%, rgb(0, 184, 212) 100%)',
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-3px) scale(1.02)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px) scale(1.02)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0) scale(1)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(0) scale(1)';
               }}
             >
               {/* Shimmer Effect */}

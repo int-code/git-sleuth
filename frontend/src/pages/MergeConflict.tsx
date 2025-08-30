@@ -1,5 +1,5 @@
-import { AlertTriangle, Calendar, CheckCircle, Clock, GitBranch, Users } from "lucide-react";
-import { colors, gradients, type PRResponse } from "../components/global_var";
+// import { AlertTriangle, Calendar, CheckCircle, Clock, GitBranch, Users } from "lucide-react";
+import { colors, type PRResponse } from "../components/global_var";
 import { useEffect, useState } from "react";
 import { MergeConflictHeader } from "../components/merge_conflict_header.";
 import { PullRequest } from "../components/pr";

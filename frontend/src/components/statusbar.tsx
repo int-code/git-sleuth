@@ -2,16 +2,15 @@ import { useEffect, useState } from "react";
 import { gradients, colors, type dataInterface } from "./global_var"
 import { BsFillLightningFill } from 'react-icons/bs';
 import { 
-  FiActivity,
   FiRefreshCw
 } from 'react-icons/fi';
 
 type StatusbarProps = {
-    data: dataInterface;
+    // data: dataInterface;
     setData: (data: dataInterface) => void
 }
 
-export const Statusbar = ({data, setData}: StatusbarProps) => {
+export const Statusbar = ({ setData}: StatusbarProps) => {
     const [pulse, setPulse] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [lastSet, setLastSet] = useState<Date | null>(null);

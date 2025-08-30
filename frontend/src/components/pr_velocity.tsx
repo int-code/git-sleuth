@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { gradients, colors } from "./global_var";
 import type { dataInterface } from "./global_var";
 import { FiGitPullRequest} from 'react-icons/fi';

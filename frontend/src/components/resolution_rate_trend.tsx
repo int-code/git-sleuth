@@ -140,7 +140,7 @@ export const ResolutionRateTrend = ({ hoveredCard, setHoveredCard }: PRVelocityP
                       fill: colors.accent,
                       stroke: 'white',
                       strokeWidth: 3,
-                      boxShadow: `0 0 20px ${colors.accent}`
+                      // boxShadow: `0 0 20px ${colors.accent}`
                     }}
                     isAnimationActive={chartAnimated}
                     animationDuration={1500}

@@ -2,7 +2,7 @@ import Dashboard from './Dashboard'
 import { Navigation } from '../components/navbar';
 import { colors, gradients } from '../components/global_var';
 import { MergeConflict } from './MergeConflict';
-import { Integrations } from './Integration';
+// import { Integrations } from './Integration';
 import { useState } from 'react';
 
 function MainApp() {
@@ -21,9 +21,9 @@ function MainApp() {
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       <Dashboard activeTab={activeTab} />
       <MergeConflict activeTab={activeTab} />
-      <Integrations activeTab={activeTab} />
+      {/* <Integrations activeTab={activeTab} /> */}
       {/* Global Polished Styles */}
-      <style tsx global>{`
+      <style>{`
         body {
           margin: 0;
           padding: 0;

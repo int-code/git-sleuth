@@ -1,6 +1,6 @@
 import { 
   FiUser, FiGitMerge,
-  FiCpu, FiDatabase,
+  FiCpu,
   FiHome,
 } from 'react-icons/fi';
 import React, { useEffect, useState } from 'react';

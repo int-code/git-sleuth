@@ -1,11 +1,10 @@
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { Statusbar } from '../components/statusbar';
 import { PRVelocity } from '../components/pr_velocity';
 import { ConflictMatrix } from '../components/conflict_matrix';
 import { AIConfidence } from '../components/ai_confidence';
 import { ResolutionGraph } from '../components/conflict_resolution_graph';
 import { MergeTiming } from '../components/merge_timing';
-import { ResolutionRateTrend } from '../components/resolution_rate_trend';
 import type { dataInterface } from '../components/global_var';
 
 
@@ -30,7 +29,7 @@ const Dashboard = ({ activeTab }: ActiveTabProp) => {
   return (
     activeTab === "home" &&
     <>
-      <Statusbar data={data} setData={setData} />
+      <Statusbar setData={setData} />
 
       {data.pr_count > 0 ? (
         // Dashboard Grid
