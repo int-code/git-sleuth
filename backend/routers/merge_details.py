@@ -12,7 +12,7 @@ merge_details_router = APIRouter()
 
 @merge_details_router.get("/merge-details")
 @jwt_required
-def get_merge_details(request: Request, db: Session = Depends(get_db)):
+async def get_merge_details(request: Request, db: Session = Depends(get_db)):
     user = request.state.user
     repos = db.query(Repository).filter(Repository.user_id == user.id).all()
     prs = db.query(PullRequests).filter(PullRequests.repo_id.in_([repo.id for repo in repos])).all()
